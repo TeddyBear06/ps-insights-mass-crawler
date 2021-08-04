@@ -1,7 +1,19 @@
 from django.db import models
 
 
-class Site(models.Model):
+WAITING = 'WAI'
+RUNNING = 'RUN'
+ERROR = 'ERR'
+FINISHED = 'FIN'
+STATES_CHOICES = [
+    (WAITING, 'Waiting'),
+    (RUNNING, 'Running'),
+    (ERROR, 'Error'),
+    (FINISHED, 'Finished'),
+]
+
+
+class Website(models.Model):
     url = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -12,17 +24,7 @@ class Site(models.Model):
 
 
 class Batch(models.Model):
-    WAITING = 'WAI'
-    RUNNING = 'RUN'
-    ERROR = 'ERR'
-    FINISHED = 'FIN'
-    STATES_CHOICES = [
-        (WAITING, 'Waiting'),
-        (RUNNING, 'Running'),
-        (ERROR, 'Error'),
-        (FINISHED, 'Finished'),
-    ]
-    site = models.ForeignKey(Site, on_delete=models.CASCADE)
+    website = models.ForeignKey(Website, on_delete=models.CASCADE)
     state = models.CharField(
         max_length=3,
         choices=STATES_CHOICES,
@@ -33,11 +35,11 @@ class Batch(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.site.name
+        return self.website.name
 
 
 class Url(models.Model):
-    site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='+')
+    website = models.ForeignKey(Website, on_delete=models.CASCADE, related_name='+')
     url = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -48,6 +50,11 @@ class Url(models.Model):
 
 class BatchUrl(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    state = models.CharField(
+        max_length=3,
+        choices=STATES_CHOICES,
+        default=WAITING,
+    )
     url = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -64,4 +71,4 @@ class UrlReport(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.batch.site.name
+        return self.batch.website.name
