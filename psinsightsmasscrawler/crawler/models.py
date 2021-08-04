@@ -1,10 +1,10 @@
 from django.db import models
 
 
-WAITING = 'WAI'
-RUNNING = 'RUN'
-ERROR = 'ERR'
-FINISHED = 'FIN'
+WAITING = 0
+RUNNING = 1
+ERROR = 2
+FINISHED = 3
 STATES_CHOICES = [
     (WAITING, 'Waiting'),
     (RUNNING, 'Running'),
@@ -25,8 +25,7 @@ class Website(models.Model):
 
 class Batch(models.Model):
     website = models.ForeignKey(Website, on_delete=models.CASCADE)
-    state = models.CharField(
-        max_length=3,
+    state = models.SmallIntegerField(
         choices=STATES_CHOICES,
         default=WAITING,
     )
@@ -50,25 +49,15 @@ class Url(models.Model):
 
 class BatchUrl(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
-    state = models.CharField(
-        max_length=3,
+    state =  models.SmallIntegerField(
         choices=STATES_CHOICES,
         default=WAITING,
     )
+    status_code = models.SmallIntegerField(null=True)
     url = models.CharField(max_length=255)
+    report = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.url
-
-
-class UrlReport(models.Model):
-    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
-    batch_url = models.ForeignKey(BatchUrl, on_delete=models.CASCADE)
-    report = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.batch.website.name
