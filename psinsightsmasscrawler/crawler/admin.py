@@ -5,6 +5,7 @@ from .models import Batch
 from .models import Url
 from .models import BatchUrl
 
+from .constants import *
 
 @admin.action(description='Crawl website URLs')
 def crawl_website(modeladmin, request, queryset):
@@ -33,16 +34,6 @@ class WebsiteAdmin(admin.ModelAdmin):
     actions = [crawl_website, create_batch]
 
 
-class BatchAdmin(admin.ModelAdmin):
-    list_display = ['website', 'state']
-    ordering = ['website']
-
-
-class UrlAdmin(admin.ModelAdmin):
-    list_display = ['website', 'url']
-    ordering = ['website']
-
-
 @admin.action(description='Perform PageSpeed test')
 def perform_pagespeed_test(modeladmin, request, queryset):
     import requests
@@ -51,22 +42,35 @@ def perform_pagespeed_test(modeladmin, request, queryset):
     env = environ.Env()
     environ.Env.read_env()
     pagespeed_key = env("PAGESPEED_KEY")
-    for batchUrl in queryset:
-        batchUrlModel = BatchUrl.objects.filter(pk=batchUrl.pk)
-        batchUrlModel.update(state=1)
-        response = requests.get('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+batchUrl.url+'key='+pagespeed_key)
-        if response.status_code == 200:
-            state = 3
-        else:
-            state = 2
-        batchUrlModel.update(report=response.json(), status_code=response.status_code, state=state)
-        time.sleep(5)
+    for batch in queryset:
+        batchModel = Batch.objects.filter(pk=batch.pk)
+        batchModel.update(state=RUNNING)
+        batchUrls = BatchUrl.objects.filter(batch=batch)
+        for batchUrl in batchUrls:
+            batchUrlModel = BatchUrl.objects.filter(pk=batchUrl.pk)
+            response = requests.get('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+batchUrl.url+'&key='+pagespeed_key)
+            if response.status_code == 200:
+                state = FINISHED
+            else:
+                state = ERROR
+            batchUrlModel.update(report=response.json(), status_code=response.status_code, state=state)
+            time.sleep(5)
+
+
+class BatchAdmin(admin.ModelAdmin):
+    list_display = ['website', 'state']
+    ordering = ['website']
+    actions = [perform_pagespeed_test]
+
+
+class UrlAdmin(admin.ModelAdmin):
+    list_display = ['website', 'url']
+    ordering = ['website']
 
 
 class BatchUrlAdmin(admin.ModelAdmin):
     list_display = ['batch', 'url', 'status_code', 'state']
     ordering = ['batch']
-    actions = [perform_pagespeed_test]
 
 
 admin.site.register(Website, WebsiteAdmin)
