@@ -49,6 +49,7 @@ def perform_pagespeed_test(modeladmin, request, queryset):
     for batch in queryset:
         batchModel = Batch.objects.filter(pk=batch.pk)
         if batch.state == WAITING:
+            batchFinalState = FINISHED
             batchModel.update(state=RUNNING)
             howManyUrlFinished = 0
             batchUrls = BatchUrl.objects.filter(batch=batch)
@@ -64,12 +65,15 @@ def perform_pagespeed_test(modeladmin, request, queryset):
                         howManyUrlFinished = howManyUrlFinished + 1
                     else:
                         state = ERROR
+                        batchFinalState = ERROR
                     batchUrlModel.update(report=response.json(), status_code=response.status_code, state=state)
                     time.sleep(3)
-            batchModel.update(state=FINISHED, report='%s on %s URLs successfully requested against PageSpeed.' % (howManyUrlFinished, totalNumberUrlsToBeRequested))
+            batchModel = Batch.objects.filter(pk=batch.pk)
+            batchModel.update(state=batchFinalState, report='%s/%s URL(s) successfully requested against PageSpeed.' % (howManyUrlFinished, totalNumberUrlsToBeRequested))
 
 
 class BatchAdmin(admin.ModelAdmin):
+    list_filter = ('website', 'state')
     list_display = ['website', 'state']
     ordering = ['website']
     actions = [perform_pagespeed_test]
@@ -81,6 +85,7 @@ class UrlAdmin(admin.ModelAdmin):
 
 
 class BatchUrlAdmin(admin.ModelAdmin):
+    list_filter = ('batch', 'status_code')
     list_display = ['batch', 'url', 'status_code', 'state']
     ordering = ['batch']
 
