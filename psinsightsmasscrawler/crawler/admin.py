@@ -1,11 +1,15 @@
 from django.contrib import admin
 
+
 from .models import Website
 from .models import Batch
 from .models import Url
 from .models import BatchUrl
+from .models import PageSpeedRequest
+
 
 from .constants import *
+
 
 @admin.action(description='Crawl website URLs')
 def crawl_website(modeladmin, request, queryset):
@@ -44,17 +48,25 @@ def perform_pagespeed_test(modeladmin, request, queryset):
     pagespeed_key = env("PAGESPEED_KEY")
     for batch in queryset:
         batchModel = Batch.objects.filter(pk=batch.pk)
-        batchModel.update(state=RUNNING)
-        batchUrls = BatchUrl.objects.filter(batch=batch)
-        for batchUrl in batchUrls:
-            batchUrlModel = BatchUrl.objects.filter(pk=batchUrl.pk)
-            response = requests.get('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+batchUrl.url+'&key='+pagespeed_key)
-            if response.status_code == 200:
-                state = FINISHED
-            else:
-                state = ERROR
-            batchUrlModel.update(report=response.json(), status_code=response.status_code, state=state)
-            time.sleep(5)
+        if batch.state == WAITING:
+            batchModel.update(state=RUNNING)
+            howManyUrlFinished = 0
+            batchUrls = BatchUrl.objects.filter(batch=batch)
+            totalNumberUrlsToBeRequested = batchUrls.count()
+            for batchUrl in batchUrls:
+                if batchUrl.state != FINISHED:
+                    batchUrlModel = BatchUrl.objects.filter(pk=batchUrl.pk)
+                    psr = PageSpeedRequest()
+                    psr.save()
+                    response = requests.get('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+batchUrl.url+'&key='+pagespeed_key)
+                    if response.status_code == 200:
+                        state = FINISHED
+                        howManyUrlFinished = howManyUrlFinished + 1
+                    else:
+                        state = ERROR
+                    batchUrlModel.update(report=response.json(), status_code=response.status_code, state=state)
+                    time.sleep(3)
+            batchModel.update(state=FINISHED, report='%s on %s URLs successfully requested against PageSpeed.' % (howManyUrlFinished, totalNumberUrlsToBeRequested))
 
 
 class BatchAdmin(admin.ModelAdmin):
@@ -73,7 +85,13 @@ class BatchUrlAdmin(admin.ModelAdmin):
     ordering = ['batch']
 
 
+class PageSpeedRequestAdmin(admin.ModelAdmin):
+    list_display = ['requested_at']
+    ordering = ['requested_at']
+
+
 admin.site.register(Website, WebsiteAdmin)
 admin.site.register(Batch, BatchAdmin)
 admin.site.register(Url, UrlAdmin)
 admin.site.register(BatchUrl, BatchUrlAdmin)
+admin.site.register(PageSpeedRequest, PageSpeedRequestAdmin)

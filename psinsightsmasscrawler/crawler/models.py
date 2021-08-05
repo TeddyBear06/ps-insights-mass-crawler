@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.humanize.templatetags.humanize import naturaltime
 
 
 from .constants import *
@@ -52,3 +53,10 @@ class BatchUrl(models.Model):
 
     def __str__(self):
         return self.url
+
+
+class PageSpeedRequest(models.Model):
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return naturaltime(self.requested_at)
