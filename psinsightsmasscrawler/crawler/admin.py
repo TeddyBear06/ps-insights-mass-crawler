@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.contrib import admin
 from .tasks import *
 
+admin.site.site_header = 'PageSpeed mass crawler'
+
 @admin.action(description='Crawl website URLs')
 def crawl_website_action(modeladmin, request, queryset):
     crawl_website.delay(list(queryset.values_list('id', flat=True)))
