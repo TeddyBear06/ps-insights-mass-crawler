@@ -19,13 +19,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'crawler.apps.CrawlerConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Apps
+    "crawler",
 ]
 
 MIDDLEWARE = [
@@ -112,3 +113,11 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#
+# Celery
+#
+CELERY_BROKER_URL = "redis://localhost"
+CELERY_TIMEZONE = "Europe/Paris"
+CELERY_RESULT_BACKEND = "redis://localhost"
+CELERY_CACHE_BACKEND = "redis://localhost"
