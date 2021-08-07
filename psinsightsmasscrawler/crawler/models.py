@@ -1,9 +1,6 @@
 from django.db import models
 from django.contrib.humanize.templatetags.humanize import naturaltime
-
-
 from .constants import *
-
 
 class Website(models.Model):
     url = models.CharField(max_length=255)
