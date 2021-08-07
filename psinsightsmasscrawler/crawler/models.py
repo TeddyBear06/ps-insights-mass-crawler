@@ -1,5 +1,6 @@
-from django.db import models
 from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.utils.safestring import mark_safe
+from django.db import models
 from .constants import *
 
 
@@ -55,6 +56,11 @@ class BatchUrl(models.Model):
 
     def __str__(self):
         return self.url
+
+    def fieldname_download(self):
+        return mark_safe('<a href="/crawler/report/%s" download>%s</a>' % (self.pk, 'Report'))
+
+    fieldname_download.short_description = 'Download report'
 
 
 class PageSpeedRequest(models.Model):
