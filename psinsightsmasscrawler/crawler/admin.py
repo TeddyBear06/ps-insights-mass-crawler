@@ -38,7 +38,7 @@ class WebsiteAdmin(admin.ModelAdmin):
 @admin.register(Batch)
 class BatchAdmin(admin.ModelAdmin):
     list_filter = ('website', 'state')
-    list_display = ['website', 'state']
+    list_display = ['website', 'state', 'created_at']
     ordering = ['website']
     actions = [perform_pagespeed_requests_action]
 

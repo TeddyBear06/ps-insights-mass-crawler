@@ -60,7 +60,7 @@ def perform_pagespeed_requests(batchs_pks):
                     fid = report['lighthouseResult']['audits']['total-blocking-time']['score'] * 100
                     cls = report['lighthouseResult']['audits']['cumulative-layout-shift']['score'] * 100
                     batchUrlModel.update(report=json.dumps(report), status_code=response.status_code, performance=performance, lcp=lcp, fid=fid, cls=cls, state=state)
-                    time.sleep(3)
+                    time.sleep(4)
             report_mess = '%s/%s URL(s) successfully requested against PageSpeed.' % (howManyUrlFinished, totalNumberUrlsToBeRequested)
             batchModel.update(state=batchFinalState, batch_report=report_mess)
     return True

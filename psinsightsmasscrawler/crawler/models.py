@@ -25,7 +25,7 @@ class Batch(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.website.name
+        return self.website.name+' ('+self.created_at.strftime("%d/%m/%y %H:%M:%S")+')'
 
 
 class Url(models.Model):
