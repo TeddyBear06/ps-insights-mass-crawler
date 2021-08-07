@@ -44,6 +44,7 @@ class BatchAdmin(admin.ModelAdmin):
 
 @admin.register(Url)
 class UrlAdmin(admin.ModelAdmin):
+    list_filter = ['website']
     list_display = ['website', 'url']
     ordering = ['website']
 
