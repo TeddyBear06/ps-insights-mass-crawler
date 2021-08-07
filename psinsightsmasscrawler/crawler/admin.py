@@ -50,7 +50,7 @@ class UrlAdmin(admin.ModelAdmin):
 @admin.register(BatchUrl)
 class BatchUrlAdmin(admin.ModelAdmin):
     list_filter = ('batch', 'status_code')
-    list_display = ['batch', 'url', 'performance', 'status_code', 'state', 'fieldname_download']
+    list_display = ['batch', 'url', 'performance', 'lcp', 'fid', 'cls', 'status_code', 'state', 'fieldname_download']
     readonly_fields = ('fieldname_download', )
     ordering = ['batch']
 
