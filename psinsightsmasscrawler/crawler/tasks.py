@@ -2,17 +2,6 @@ from crawler.models import Website, Url, Batch, BatchUrl, PageSpeedRequest
 from crawler.constants import *
 from celery import shared_task
 
-@shared_task
-def crawl_website(websites_pks):
-    from usp.tree import sitemap_tree_for_homepage
-    for website_pk in websites_pks:
-        website = Website.objects.get(pk=website_pk)
-        tree = sitemap_tree_for_homepage(website.url)
-        for page in tree.all_pages():
-            url = Url(website=website, url=page.url)
-            url.save()
-    return True
-
 # https://stackoverflow.com/questions/8706665/best-way-to-process-database-in-chunks-with-django-queryset#answer-39550574
 def chunked_queryset(qs, batch_size, index='id'):
     """
@@ -26,6 +15,17 @@ def chunked_queryset(qs, batch_size, index='id'):
     for i in range(min_id, max_id + 1, batch_size):
         filter_args = {'{0}__range'.format(index): (i, i + batch_size - 1)}
         yield qs.filter(**filter_args)
+
+@shared_task
+def crawl_website(websites_pks):
+    from usp.tree import sitemap_tree_for_homepage
+    for website_pk in websites_pks:
+        website = Website.objects.get(pk=website_pk)
+        tree = sitemap_tree_for_homepage(website.url)
+        for page in tree.all_pages():
+            url = Url(website=website, url=page.url)
+            url.save()
+    return True
 
 @shared_task
 def create_batch(websites_pks):
@@ -51,30 +51,37 @@ def perform_pagespeed_requests(batchs_pks):
         batchModel = Batch.objects.filter(pk=batch.pk)
         if batch.state == WAITING:
             batchFinalState = FINISHED
-            howManyUrlFinished = 0
-            batchUrls = BatchUrl.objects.filter(batch=batch).exclude(state=FINISHED)
-            totalNumberUrlsToBeRequested = batchUrls.count()
-            for batchUrl in batchUrls:
-                batchUrlModel = BatchUrl.objects.filter(pk=batchUrl.pk)
-                psr = PageSpeedRequest()
-                psr.save()
-                response = requests.get('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+batchUrl.url+'&key='+pagespeed_key)
-                if response.status_code == 200:
-                    state = FINISHED
-                    howManyUrlFinished = howManyUrlFinished + 1
-                elif response.status_code == 429:
-                    # If we face a "Too Many Requests" it's a good time to sleep a while
-                    return None
-                else:
-                    state = ERROR
-                    batchFinalState = ERROR
-                report = json.loads(response.text)
-                performance = report['lighthouseResult']['categories']['performance']['score'] * 100
-                lcp = report['lighthouseResult']['audits']['largest-contentful-paint']['score'] * 100
-                fid = report['lighthouseResult']['audits']['total-blocking-time']['score'] * 100
-                cls = report['lighthouseResult']['audits']['cumulative-layout-shift']['score'] * 100
-                batchUrlModel.update(report=json.dumps(report), status_code=response.status_code, performance=performance, lcp=lcp, fid=fid, cls=cls, state=state)
-                time.sleep(3.5)
-            report_mess = '%s/%s URL(s) successfully requested against PageSpeed.' % (howManyUrlFinished, totalNumberUrlsToBeRequested)
-            batchModel.update(state=batchFinalState, batch_report=report_mess)
+            for chunk in chunked_queryset(BatchUrl.objects.filter(batch=batch).exclude(state=FINISHED), 2000):
+                for batchUrl in chunk:
+                    batchUrlModel = BatchUrl.objects.filter(pk=batchUrl.pk)
+                    psr = PageSpeedRequest()
+                    psr.save()
+                    response = requests.get(PAGESPEED_API_URL % (batchUrl.url, pagespeed_key))
+                    if response.status_code == 200:
+                        print('%s successfully handled!' % (batchUrl.url))
+                        state = FINISHED
+                    elif response.status_code == 429:
+                        print('Too Many Requests... Exiting right away...')
+                        # If we face a "Too Many Requests" it's a good time to sleep a while
+                        return None
+                    else:
+                        print('%s in error (HTTP code %s)!' % (batchUrl.url, response.status_code))
+                        state = ERROR
+                        batchFinalState = ERROR
+                    report = json.loads(response.text)
+                    performance = report['lighthouseResult']['categories']['performance']['score'] * 100
+                    lcp = report['lighthouseResult']['audits']['largest-contentful-paint']['score'] * 100
+                    fid = report['lighthouseResult']['audits']['total-blocking-time']['score'] * 100
+                    cls = report['lighthouseResult']['audits']['cumulative-layout-shift']['score'] * 100
+                    batchUrlModel.update(
+                        report=json.dumps(report), 
+                        status_code=response.status_code, 
+                        performance=performance, 
+                        lcp=lcp, 
+                        fid=fid, 
+                        cls=cls, 
+                        state=state
+                    )
+                    time.sleep(2)
+            batchModel.update(state=batchFinalState)
     return True
