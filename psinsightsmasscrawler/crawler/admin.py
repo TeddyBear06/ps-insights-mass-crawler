@@ -5,19 +5,19 @@ from .tasks import *
 
 admin.site.site_header = 'PageSpeed mass crawler'
 
-@admin.action(description='Crawl website URLs')
+@admin.action(description='1. Crawl website URLs')
 def crawl_website_action(modeladmin, request, queryset):
     crawl_website.delay(list(queryset.values_list('id', flat=True)))
     messages.info(request, "Crawl in progress, please wait. It can take a while...")
     return True
 
-@admin.action(description='Create a new batch')
+@admin.action(description='2. Create a new batch')
 def create_batch_action(modeladmin, request, queryset):
     create_batch.delay(list(queryset.values_list('id', flat=True)))
     messages.info(request, "Batch creation in progress, please wait. It can take a while...")
     return True
 
-@admin.action(description='Perform PageSpeed test')
+@admin.action(description='3. Perform PageSpeed test')
 def perform_pagespeed_requests_action(modeladmin, request, queryset):
     perform_pagespeed_requests.delay(list(queryset.values_list('id', flat=True)))
     messages.info(request, "PageSpeed in progress, please wait. It can take a while...")
@@ -40,7 +40,7 @@ class UrlAdmin(admin.ModelAdmin):
 
 class BatchUrlAdmin(admin.ModelAdmin):
     list_filter = ('batch', 'status_code')
-    list_display = ['batch', 'url', 'status_code', 'state']
+    list_display = ['batch', 'url', 'performance', 'status_code', 'state']
     ordering = ['batch']
 
 class PageSpeedRequestAdmin(admin.ModelAdmin):

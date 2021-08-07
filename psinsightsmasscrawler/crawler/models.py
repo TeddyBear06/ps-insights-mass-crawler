@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from .constants import *
 
+
 class Website(models.Model):
     url = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
@@ -43,6 +44,10 @@ class BatchUrl(models.Model):
         default=WAITING,
     )
     status_code = models.SmallIntegerField(null=True)
+    performance = models.SmallIntegerField(null=True)
+    lcp = models.SmallIntegerField(null=True, help_text="Largest Contentful Paint: Performance de la page")
+    fid = models.SmallIntegerField(null=True, help_text="First Input Delay: Interactivité de la page (TBT in Lighthouse)")
+    cls = models.SmallIntegerField(null=True, help_text="Cumulative Layout Shift: Stabilité de la page")
     url = models.CharField(max_length=255)
     report = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

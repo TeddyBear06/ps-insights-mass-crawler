@@ -30,6 +30,7 @@ def perform_pagespeed_requests(batchs_pks):
     import requests
     import environ
     import time
+    import json
     env = environ.Env()
     environ.Env.read_env()
     pagespeed_key = env("PAGESPEED_KEY")
@@ -53,7 +54,12 @@ def perform_pagespeed_requests(batchs_pks):
                     else:
                         state = ERROR
                         batchFinalState = ERROR
-                    batchUrlModel.update(report=response.json(), status_code=response.status_code, state=state)
+                    report = json.loads(response.text)
+                    performance = report['lighthouseResult']['categories']['performance']['score'] * 100
+                    lcp = report['lighthouseResult']['audits']['largest-contentful-paint']['score'] * 100
+                    fid = report['lighthouseResult']['audits']['total-blocking-time']['score'] * 100
+                    cls = report['lighthouseResult']['audits']['cumulative-layout-shift']['score'] * 100
+                    batchUrlModel.update(report=json.dumps(report), status_code=response.status_code, performance=performance, lcp=lcp, fid=fid, cls=cls, state=state)
                     time.sleep(3)
             report_mess = '%s/%s URL(s) successfully requested against PageSpeed.' % (howManyUrlFinished, totalNumberUrlsToBeRequested)
             batchModel.update(state=batchFinalState, batch_report=report_mess)
