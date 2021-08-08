@@ -60,6 +60,20 @@ def perform_pagespeed_requests(batchs_pks):
                     if response.status_code == 200:
                         print('%s successfully handled!' % (batchUrl.url))
                         state = FINISHED
+                        report = json.loads(response.text)
+                        performance = report['lighthouseResult']['categories']['performance']['score'] * 100
+                        lcp = report['lighthouseResult']['audits']['largest-contentful-paint']['score'] * 100
+                        fid = report['lighthouseResult']['audits']['total-blocking-time']['score'] * 100
+                        cls = report['lighthouseResult']['audits']['cumulative-layout-shift']['score'] * 100
+                        batchUrlModel.update(
+                            report=json.dumps(report), 
+                            status_code=response.status_code, 
+                            performance=performance, 
+                            lcp=lcp, 
+                            fid=fid, 
+                            cls=cls, 
+                            state=state
+                        )
                     elif response.status_code == 429:
                         print('Too Many Requests... Exiting right away...')
                         # If we face a "Too Many Requests" it's a good time to sleep a while
@@ -68,20 +82,9 @@ def perform_pagespeed_requests(batchs_pks):
                         print('%s in error (HTTP code %s)!' % (batchUrl.url, response.status_code))
                         state = ERROR
                         batchFinalState = ERROR
-                    report = json.loads(response.text)
-                    performance = report['lighthouseResult']['categories']['performance']['score'] * 100
-                    lcp = report['lighthouseResult']['audits']['largest-contentful-paint']['score'] * 100
-                    fid = report['lighthouseResult']['audits']['total-blocking-time']['score'] * 100
-                    cls = report['lighthouseResult']['audits']['cumulative-layout-shift']['score'] * 100
-                    batchUrlModel.update(
-                        report=json.dumps(report), 
-                        status_code=response.status_code, 
-                        performance=performance, 
-                        lcp=lcp, 
-                        fid=fid, 
-                        cls=cls, 
-                        state=state
-                    )
-                    time.sleep(2)
+                        batchUrlModel.update(
+                            status_code=response.status_code, 
+                            state=state
+                        )
             batchModel.update(state=batchFinalState)
     return True
