@@ -41,17 +41,22 @@ def create_batch(websites_pks):
     return True
 
 @shared_task
-def perform_pagespeed_requests(batchs_pks):
+def perform_pagespeed_requests(batchs_pks, group):
     import requests, environ, time, json
     env = environ.Env()
     environ.Env.read_env()
-    pagespeed_key = env("PAGESPEED_KEY")
+    if group == 'odd':
+        pagespeed_key = env("PAGESPEED_KEY")
+        id_regex_filter = '^\d*[13579]$'
+    else:
+        pagespeed_key = env("PAGESPEED_KEY_2")
+        id_regex_filter = '^\d*[02468]$'
     for batch_pk in batchs_pks:
         batch = Batch.objects.get(pk=batch_pk)
         batchModel = Batch.objects.filter(pk=batch.pk)
         if batch.state == WAITING:
             batchFinalState = FINISHED
-            for chunk in chunked_queryset(BatchUrl.objects.filter(batch=batch).exclude(state=FINISHED), 2000):
+            for chunk in chunked_queryset(BatchUrl.objects.filter(batch=batch, id__iregex=id_regex_filter).exclude(state=FINISHED), 2000):
                 for batchUrl in chunk:
                     batchUrlModel = BatchUrl.objects.filter(pk=batchUrl.pk)
                     psr = PageSpeedRequest()

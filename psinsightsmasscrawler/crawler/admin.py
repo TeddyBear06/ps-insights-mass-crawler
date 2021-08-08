@@ -17,9 +17,15 @@ def create_batch_action(modeladmin, request, queryset):
     messages.info(request, "Batch creation in progress, please wait. It can take a while...")
     return True
 
-@admin.action(description='3. Perform PageSpeed test')
-def perform_pagespeed_requests_action(modeladmin, request, queryset):
-    perform_pagespeed_requests.delay(list(queryset.values_list('id', flat=True)))
+@admin.action(description='3. Perform PageSpeed test (even)')
+def perform_pagespeed_requests_even_action(modeladmin, request, queryset):
+    perform_pagespeed_requests.delay(list(queryset.values_list('id', flat=True)), 'even')
+    messages.info(request, "PageSpeed in progress, please wait. It can take a while...")
+    return True
+
+@admin.action(description='3.bis Perform PageSpeed test (odd)')
+def perform_pagespeed_requests_odd_action(modeladmin, request, queryset):
+    perform_pagespeed_requests.delay(list(queryset.values_list('id', flat=True)), 'odd')
     messages.info(request, "PageSpeed in progress, please wait. It can take a while...")
     return True
 
@@ -40,7 +46,7 @@ class BatchAdmin(admin.ModelAdmin):
     list_filter = ('website', 'state')
     list_display = ['website', 'state', 'created_at']
     ordering = ['website']
-    actions = [perform_pagespeed_requests_action]
+    actions = [perform_pagespeed_requests_even_action, perform_pagespeed_requests_odd_action]
 
 @admin.register(Url)
 class UrlAdmin(admin.ModelAdmin):
