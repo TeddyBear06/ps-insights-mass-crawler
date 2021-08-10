@@ -28,8 +28,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Apps
     "crawler",
-    # Vendors
-    "inline_actions",
 ]
 
 MIDDLEWARE = [
@@ -66,10 +64,21 @@ WSGI_APPLICATION = 'psinsightsmasscrawler.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
@@ -120,7 +129,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #
 # Celery
 #
-CELERY_BROKER_URL = "redis://localhost"
+CELERY_BROKER_URL = "redis://redis"
 CELERY_TIMEZONE = "Europe/Paris"
-CELERY_RESULT_BACKEND = "redis://localhost"
-CELERY_CACHE_BACKEND = "redis://localhost"
+CELERY_RESULT_BACKEND = "redis://redis"
+CELERY_CACHE_BACKEND = "redis://redis"

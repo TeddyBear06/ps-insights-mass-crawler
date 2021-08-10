@@ -1,0 +1,49 @@
+version: "3.7"
+
+x-common-variables: &common-variables
+  DJANGO_SETTINGS_MODULE: "psinsightsmasscrawler.settings"
+  CELERY_BROKER_URL: "redis://redis:6379"
+  DEFAULT_DATABASE: "psql://postgres:postgres@db:5432/psinsightsmasscrawler"
+  DEBUG: "True"
+  ALLOWED_HOSTS: "*,test"
+  SECRET_KEY: "this-is-a-secret-key-shhhhh"
+
+services:
+  app:
+    build:
+      context: .
+    volumes:
+      - ./app:/app
+    environment:
+      <<: *common-variables
+    ports:
+      - 8000:8000
+    command: >
+      sh -c "python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - db
+      - redis
+
+  celery-worker:
+    build:
+      context: .
+    volumes:
+      - ./app:/app
+    environment:
+      <<: *common-variables
+    command: celery --app psinsightsmasscrawler worker -l info
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:12.4-alpine
+    environment:
+      - POSTGRES_DB=app
+      - POSRGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  redis:
+    image: redis:6.0.8-alpine
