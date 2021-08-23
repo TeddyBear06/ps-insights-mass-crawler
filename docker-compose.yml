@@ -1,21 +1,11 @@
 version: "3.7"
 
-x-common-variables: &common-variables
-  DJANGO_SETTINGS_MODULE: "psinsightsmasscrawler.settings"
-  CELERY_BROKER_URL: "redis://redis:6379"
-  DEFAULT_DATABASE: "psql://postgres:postgres@db:5432/psinsightsmasscrawler"
-  DEBUG: "True"
-  ALLOWED_HOSTS: "*,test"
-  SECRET_KEY: "this-is-a-secret-key-shhhhh"
-
 services:
   app:
     build:
       context: .
     volumes:
       - ./app:/app
-    environment:
-      <<: *common-variables
     ports:
       - 8000:8000
     command: >
@@ -31,9 +21,7 @@ services:
       context: .
     volumes:
       - ./app:/app
-    environment:
-      <<: *common-variables
-    command: celery --app psinsightsmasscrawler worker -l info
+    command: celery --app psinsightsmasscrawler worker
     depends_on:
       - db
       - redis

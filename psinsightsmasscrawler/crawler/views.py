@@ -12,4 +12,4 @@ def download_report(request, pk):
     return response
 
 def index(request):
-    return HttpResponse("Hello, world!")
+    return HttpResponse("Hello, psinsightsmasscrawler!")
