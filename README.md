@@ -11,7 +11,7 @@ $ docker compose -p psinsightsmasscrawler up
 [2/4] Open the app container shell:
 
 ```bash
-$ docker exec -it psinsightsmasscrawler_app_1 sh
+$ docker exec -it psinsightsmasscrawler-app-1 sh
 ```
 
 [3/4] Create a django admin super user (follow CLI instructions):
@@ -42,3 +42,12 @@ Then:
 >>> from django.contrib.admin.models import LogEntry
 >>> LogEntry.objects.all().delete()
 ```
+
+## Dependencies
+
+Thanks to all contributors of thoose wonderful projects:
+
+- [Django](https://www.djangoproject.com/)
+- [ultimate-sitemap-parser](https://pypi.org/project/ultimate-sitemap-parser/)
+- [redis](https://pypi.org/project/redis/)
+- [celery](https://docs.celeryproject.org/en/stable/getting-started/introduction.html)

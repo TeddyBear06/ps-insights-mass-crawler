@@ -4,14 +4,14 @@ services:
   app:
     build:
       context: .
-    volumes:
-      - ./app:/app
     ports:
       - 8000:8000
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - '.env'
     depends_on:
       - db
       - redis
@@ -19,19 +19,18 @@ services:
   celery-worker:
     build:
       context: .
-    volumes:
-      - ./app:/app
     command: celery --app psinsightsmasscrawler worker
+    env_file:
+      - '.env'
     depends_on:
+      - app
       - db
       - redis
 
   db:
     image: postgres:12.4-alpine
-    environment:
-      - POSTGRES_DB=app
-      - POSRGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+    env_file:
+      - '.env'
 
   redis:
     image: redis:6.0.8-alpine

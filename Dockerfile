@@ -1,5 +1,6 @@
 FROM python:3.9.0-alpine
 
+# https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED 1
 
 RUN apk add --update --no-cache postgresql-client python3-dev
