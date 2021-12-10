@@ -6,6 +6,8 @@ Psinsightsmasscrawler is a tool to make - mass - PageSpeed tests easier and obta
 
 Just add a domain, crawl website's URLs (using sitemap.whatever, do not worry it's automagical), create a batch (a list of URLs to analyze) and run the batch to get a clean view of a website performance.
 
+This tool store the report as a JSON downloadable file that you can analyse using [Lighthouse Report Viewer](https://googlechrome.github.io/lighthouse/viewer/).
+
 Have a look at this YouTube video <a href="https://www.youtube.com/watch?v=AVuUznzflug">https://www.youtube.com/watch?v=AVuUznzflug</a> for a complete demo.
 
 ## Requirements
