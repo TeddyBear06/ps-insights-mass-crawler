@@ -1,5 +1,24 @@
 # PageSpeed Insights Mass Carwler (aka psinsightsmasscrawler)
 
+Psinsightsmasscrawler is a tool to make - mass - PageSpeed tests easier and obtain a clear report.
+
+![Report view](medias/screen1.png?raw=true "Report view")
+
+Just add a domain, crawl website's URLs (using sitemap.whatever, do not worry it's automagical), create a batch (a list of URLs to analyze) and run the batch to get a clean view of a website performance.
+
+Have a look at this YouTube video <a href="https://www.youtube.com/watch?v=AVuUznzflug">https://www.youtube.com/watch?v=AVuUznzflug</a> for a complete demo.
+
+## Requirements
+
+1. Pagespeed API keys (2 keys for async workers), see [Get Started with the PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started#APIKey)
+2. Clone this repo:
+
+```bash
+$ git clone https://github.com/TeddyBear06/ps-insights-mass-crawler.git
+```
+
+3. Docker (tested with 4.30, latest actually)
+
 ## Quickstart
 
 [1/4] Run the stack:
@@ -21,10 +40,6 @@ $ python manage.py createsuperuser
 ```
 
 [4/4] Go to <a href="http://127.0.0.1:8000/admin/">http://127.0.0.1:8000/admin/</a>
-
-## Usage
-
-Have a look at this YouTube video : <a href="https://www.youtube.com/watch?v=AVuUznzflug">https://www.youtube.com/watch?v=AVuUznzflug</a>
 
 ## Useful commands
 
