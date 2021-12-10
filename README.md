@@ -50,4 +50,4 @@ Thanks to all contributors of thoose wonderful projects:
 - [Django](https://www.djangoproject.com/)
 - [ultimate-sitemap-parser](https://pypi.org/project/ultimate-sitemap-parser/)
 - [redis](https://pypi.org/project/redis/)
-- [celery](https://docs.celeryproject.org/en/stable/getting-started/introduction.html)
+- [Celery](https://docs.celeryproject.org/en/stable/getting-started/introduction.html)
