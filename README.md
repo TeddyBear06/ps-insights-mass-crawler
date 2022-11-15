@@ -26,7 +26,7 @@ $ git clone https://github.com/TeddyBear06/ps-insights-mass-crawler.git
 [1/4] Run the stack:
 
 ```bash
-$ docker compose -p psinsightsmasscrawler up
+$ docker compose -p psinsightsmasscrawler up -d
 ```
 
 [2/4] Open the app container shell:

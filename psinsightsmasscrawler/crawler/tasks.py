@@ -23,8 +23,9 @@ def crawl_website(websites_pks):
         website = Website.objects.get(pk=website_pk)
         tree = sitemap_tree_for_homepage(website.url)
         for page in tree.all_pages():
-            url = Url(website=website, url=page.url)
-            url.save()
+            if not Url.objects.filter(website=website, url=page.url).exists():
+                url = Url(website=website, url=page.url)
+                url.save()
     return True
 
 @shared_task
