@@ -15,8 +15,6 @@ ADD requirements.txt /psinsightsmasscrawler
 RUN pip install -r ./requirements.txt
 RUN apk del .tmp-build-deps
 
-ADD psinsightsmasscrawler/ /psinsightsmasscrawler
-
 RUN adduser -D user
 RUN chown -R user:user .
 USER user

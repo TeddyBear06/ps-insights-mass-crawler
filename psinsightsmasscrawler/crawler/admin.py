@@ -1,6 +1,7 @@
 from .models import Website, Batch, Url, BatchUrl, PageSpeedRequest
 from django.contrib import messages
 from django.contrib import admin
+from django.http import HttpResponse
 from .tasks import *
 import time
 
@@ -26,11 +27,24 @@ def perform_pagespeed_requests_action(modeladmin, request, queryset):
     messages.info(request, "PageSpeed in progress, please wait. It can take a while...")
     return True
 
-@admin.action(description='4. Export JSON reports')
-def export_json_reports_action(batchUrls_pk):
-    export_json_reports.delay(list(queryset.values_list('id', flat=True)))
-    messages.info(request, "JSON export in progress, please wait. It can take a while...")
-    return True
+# @admin.action(description='4. Export JSON reports')
+# def export_json_reports_action(modeladmin, request, queryset):
+#     export_json_reports.delay(list(queryset.values_list('id', flat=True)))
+#     messages.info(request, "JSON export in progress, please wait. It can take a while...")
+#     return True
+
+@admin.action(description='Export CSV')
+def export_csv_action(self, request, queryset):
+    import csv
+    meta = self.model._meta
+    field_names = ['batch', 'url', 'performance', 'lcp', 'fid', 'cls', 'status_code', 'state']
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+    writer = csv.writer(response)
+    writer.writerow(field_names)
+    for obj in queryset:
+        row = writer.writerow([getattr(obj, field) for field in field_names])
+    return response
 
 @admin.register(Website)
 class WebsiteAdmin(admin.ModelAdmin):
@@ -57,6 +71,7 @@ class BatchUrlAdmin(admin.ModelAdmin):
     list_display = ['batch', 'url', 'performance', 'lcp', 'fid', 'cls', 'status_code', 'state', 'fieldname_download']
     readonly_fields = ('fieldname_download', )
     ordering = ['batch']
+    actions = [export_csv_action]
 
 @admin.register(PageSpeedRequest)
 class PageSpeedRequestAdmin(admin.ModelAdmin):
